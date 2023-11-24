@@ -27,11 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={` ${bebas_neue.variable} ${outfit.variable} ${inter.className}`}
-    >
-      <body className={inter.className}>{children}</body>
+    <html lang="en">
+      <body
+        className={`flex justify-center bg-[#EFF1F8] ${bebas_neue.variable} ${outfit.variable} ${inter.className}`}
+      >
+        {children}
+      </body>
     </html>
   );
 }
