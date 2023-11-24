@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Inter, Outfit } from "next/font/google";
 import "../styles/globals.css";
+import MainNav from "@/components/organisms/MainNav";
 
 const bebas_neue = Bebas_Neue({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body
         className={`flex justify-center bg-[#EFF1F8] ${bebas_neue.variable} ${outfit.variable} ${inter.className}`}
       >
+        <MainNav />
         {children}
       </body>
     </html>
