@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html.disable-overscroll,
+body.disable-overscroll {
+  font-display: auto;
+  overscroll-behavior: none;
+}

@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Inter, Outfit } from "next/font/google";
 import "../styles/globals.css";
-import MainNav from "@/components/organisms/MainNav";
+
+import LayoutWrapper from "@/components/templates/LayoutWrapper";
+import { cn } from "@/lib/utils";
 
 const bebas_neue = Bebas_Neue({
   subsets: ["latin"],
   weight: "400",
+  preload: true,
   variable: "--font-bebas-neue",
 });
 
 const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  weight: ["300", "400", "500", "700"],
+  preload: true,
   variable: "--font-outfit",
 });
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], preload: true });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -30,10 +35,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`flex justify-center bg-[#EFF1F8] ${bebas_neue.variable} ${outfit.variable} ${inter.className}`}
+        className={cn(
+          "flex w-full flex-col items-center bg-[#EFF1F8] mb-12",
+          bebas_neue.variable,
+          outfit.variable,
+          inter.className,
+        )}
       >
-        <MainNav />
-        {children}
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );
