@@ -17,11 +17,11 @@ import { useEffect } from "react";
 interface CreateBlocAssetsProps {
   coverImageFile: {
     localUrl: string;
-    uploadedUrl: string;
+    ipfsCid: string;
   };
   avatarFile: {
     localUrl: string;
-    uploadedUrl: string;
+    ipfsCid: string;
   };
   updateValues: (update: Partial<CreateBlocState>) => void;
 }
@@ -38,8 +38,7 @@ const CreateBlocAssets = ({
       updateValues({
         coverImageFile: {
           ...coverImageFile,
-          uploadedUrl:
-            uploadStatuses["coverImageFile"].fileStatus?.data.Hash || "",
+          ipfsCid: uploadStatuses["coverImageFile"].fileStatus?.data.Hash || "",
         },
       });
     }
@@ -47,7 +46,7 @@ const CreateBlocAssets = ({
       updateValues({
         avatarFile: {
           ...avatarFile,
-          uploadedUrl: uploadStatuses["avatarFile"].fileStatus?.data.Hash || "",
+          ipfsCid: uploadStatuses["avatarFile"].fileStatus?.data.Hash || "",
         },
       });
     }
@@ -56,7 +55,7 @@ const CreateBlocAssets = ({
   const handleFileChange =
     (type: keyof CreateBlocState) => async (file: File) => {
       const url = URL.createObjectURL(file);
-      updateValues({ [type]: { localUrl: url, uploadedUrl: "" } });
+      updateValues({ [type]: { localUrl: url, ipfsCid: "" } });
       // Create a synthetic event object
       const event = {
         target: {
@@ -68,7 +67,7 @@ const CreateBlocAssets = ({
     };
 
   const handleFileReset = (type: keyof CreateBlocState) => () => {
-    updateValues({ [type]: { localUrl: "", uploadedUrl: "" } });
+    updateValues({ [type]: { localUrl: "", ipfsCid: "" } });
   };
 
   return (
@@ -99,7 +98,7 @@ const CreateBlocAssets = ({
           </Field>
         </Card>
         <FileInput
-          accept="image/jpeg,image/png"
+          accept="image/jpeg,image/png,image/webp"
           onChange={handleFileChange("coverImageFile")}
           onReset={handleFileReset("coverImageFile")}
         >

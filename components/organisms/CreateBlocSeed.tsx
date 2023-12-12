@@ -16,11 +16,11 @@ import { useEffect } from "react";
 interface CreateBlocSeedProps {
   main: {
     localUrl: string;
-    uploadedUrl: string;
+    ipfsCid: string;
   };
   stems: {
     localUrl: string;
-    uploadedUrl: string;
+    ipfsCid: string;
   }[];
   updateValues: (update: Partial<CreateBlocState>) => void;
 }
@@ -36,7 +36,7 @@ const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
       updateValues({
         main: {
           ...main,
-          uploadedUrl: uploadStatuses["main"].fileStatus?.data.Hash || "",
+          ipfsCid: uploadStatuses["main"].fileStatus?.data.Hash || "",
         },
       });
     }
@@ -45,7 +45,7 @@ const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
         const newStems = [...stems];
         newStems[i] = {
           ...newStems[i],
-          uploadedUrl:
+          ipfsCid:
             uploadStatuses[`stems[${i}]`].fileStatus?.data.Hash || "",
         };
         updateValues({ stems: newStems });
@@ -69,7 +69,7 @@ const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
               accept="audio/*"
               onChange={async (file) => {
                 const url = URL.createObjectURL(file);
-                updateValues({ main: { localUrl: url, uploadedUrl: "" } });
+                updateValues({ main: { localUrl: url, ipfsCid: "" } });
                 // Create a synthetic event object
                 const event = {
                   target: {
@@ -80,7 +80,7 @@ const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
                 await uploadFile(event, "main");
               }}
               onReset={() =>
-                updateValues({ main: { localUrl: "", uploadedUrl: "" } })
+                updateValues({ main: { localUrl: "", ipfsCid: "" } })
               }
             >
               {(context) =>
@@ -126,9 +126,9 @@ const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
                   onChange={async (file) => {
                     const url = URL.createObjectURL(file);
                     const newStems = [...stems];
-                    newStems[i] = { localUrl: url, uploadedUrl: "" };
+                    newStems[i] = { localUrl: url, ipfsCid: "" };
                     updateValues({
-                      stems: [...newStems, { localUrl: url, uploadedUrl: "" }],
+                      stems: [...newStems, { localUrl: url, ipfsCid: "" }],
                     });
                     // Create a synthetic event object
                     const event = {
