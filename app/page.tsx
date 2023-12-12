@@ -1,6 +1,6 @@
 "use client";
 
-import FeedCover from "@/components/atoms/FeedCover";
+import HomeCover from "@/components/atoms/HomeCover";
 import Feed, { Post } from "@/components/organisms/Feed";
 import { Card, Typography } from "@ensdomains/thorin";
 import { useState, useEffect } from "react";
@@ -12,7 +12,7 @@ export default function FeedPage() {
   }, []);
   return (
     <div className="flex h-full w-full max-w-[1228px] flex-col gap-12">
-      <FeedCover />
+      <HomeCover />
       <div className="flex w-full gap-12">
         <Feed posts={posts} />
         <Card className="h-max w-full !max-w-sm">
