@@ -1,15 +1,15 @@
 "use client";
-import { Button, Card, Typography } from "@ensdomains/thorin";
-import { useReducer, useState } from "react";
-import { stringToHex } from "viem";
+import { Button, Card, Toast, Typography } from "@ensdomains/thorin";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useContractWrite, useNetwork, usePrepareContractWrite } from "wagmi";
 
-import FeedCover from "@/components/atoms/FeedCover";
+import CreateBlocCover from "@/components/atoms/CreateBlocCover";
 import CreateBlocAssets from "@/components/organisms/CreateBlocAssets";
 import CreateBlocInfo from "@/components/organisms/CreateBlocInfo";
 import CreateBlocSeed from "@/components/organisms/CreateBlocSeed";
 import { coreABI, routerABI } from "@/lib/contracts/data";
-import { satisfies } from "@/lib/utils";
+import useLightHouse from "@/lib/hooks/lighthouse";
+import { sanitizeSubdomain } from "@/lib/utils";
 
 interface ContractArgs {
   blockInfoCid: string;
@@ -24,19 +24,19 @@ export interface CreateBlocState {
   chain: string;
   coverImageFile: {
     localUrl: string;
-    uploadedUrl: string;
+    ipfsCid: string;
   };
   avatarFile: {
     localUrl: string;
-    uploadedUrl: string;
+    ipfsCid: string;
   };
   main: {
     localUrl: string;
-    uploadedUrl: string;
+    ipfsCid: string;
   };
   stems: Array<{
     localUrl: string;
-    uploadedUrl: string;
+    ipfsCid: string;
   }>;
 }
 
@@ -47,20 +47,20 @@ const initialState: CreateBlocState = {
   chain: "",
   coverImageFile: {
     localUrl: "",
-    uploadedUrl: "",
+    ipfsCid: "",
   },
   avatarFile: {
     localUrl: "",
-    uploadedUrl: "",
+    ipfsCid: "",
   },
   main: {
     localUrl: "",
-    uploadedUrl: "",
+    ipfsCid: "",
   },
   stems: [
     {
       localUrl: "",
-      uploadedUrl: "",
+      ipfsCid: "",
     },
   ],
 };
@@ -72,22 +72,33 @@ const reducer = (
   return { ...state, ...update };
 };
 
-const useBlocContractWrite = (abi: any, address: any, args: ContractArgs) => {
-  const { config } = usePrepareContractWrite({
-    address: stringToHex(address || ""),
-    abi: abi,
-    functionName: "createMusicBloc",
+const useBlocContractWrite = (
+  abi: any,
+  address: any,
+  functionName: string,
+  args: ContractArgs,
+) => {
+  const { config, error } = usePrepareContractWrite({
+    address: address || "",
+    abi,
+    functionName,
     args: [args.blockInfoCid, args.subdomain, args.seedInfoCid],
-    enabled: satisfies([args.blockInfoCid, args.subdomain, args.seedInfoCid]),
   });
+
+  error && console.error(error);
 
   return useContractWrite(config);
 };
 
 export default function CreateBlocPage() {
-  const { chain } = useNetwork();
+  const sepoliaId = 11155111;
 
+  const { chain } = useNetwork();
+  const { uploadFile, uploadStatuses } = useLightHouse();
+  const writeFunctionRef = useRef<Function | null>(null);
   const [state, updateValues] = useReducer(reducer, initialState);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isToastOpen, setIsToastOpen] = useState(false);
   const [contractArgs, setContractArgs] = useState<ContractArgs>({
     blockInfoCid: "",
     subdomain: "",
@@ -102,6 +113,7 @@ export default function CreateBlocPage() {
   } = useBlocContractWrite(
     coreABI,
     process.env.NEXT_PUBLIC_CORE_CONTRACT,
+    "createMusicBloc",
     contractArgs,
   );
 
@@ -112,15 +124,87 @@ export default function CreateBlocPage() {
     write: writeRouter,
   } = useBlocContractWrite(
     routerABI,
-    process.env.NEXT_PUBLIC_ROUTER_CONTRACT,
+    process.env.NEXT_PUBLIC_POLYGON_ROUTER_CONTRACT,
+    "sendCreateMusicBloc",
     contractArgs,
   );
 
-  const sepoliaId = 11155111;
+  chain?.id;
+
+  useEffect(() => {
+    if (isSuccessCore || isSuccessRouter) {
+      setIsToastOpen(true);
+    }
+  }, [isSuccessCore, isSuccessRouter]);
+
+  useEffect(() => {
+    const allUploadsCompleted = Object.values(uploadStatuses).every(
+      (status) => status.percentage === 100,
+    );
+
+    setIsLoading(!allUploadsCompleted);
+
+    if (allUploadsCompleted) {
+      setIsLoading(false);
+
+      const coverAndAvatarStatus = uploadStatuses["coverAndAvatar"];
+      const mainAndStemsStatus = uploadStatuses["mainAndStems"];
+
+      setContractArgs({
+        blockInfoCid: coverAndAvatarStatus?.fileStatus?.data?.Hash || "",
+        subdomain: sanitizeSubdomain(state.name),
+        seedInfoCid: mainAndStemsStatus?.fileStatus?.data?.Hash || "",
+      });
+
+      if (writeFunctionRef.current) {
+        writeFunctionRef.current();
+      }
+    }
+  }, [uploadStatuses]);
+
+  async function handleOnClick(writeFunction: Function) {
+    const coverAndAvatarJson = JSON.stringify({
+      coverImage: {
+        ipfsCid: state.coverImageFile.ipfsCid,
+      },
+      avatarFile: {
+        ipfsCid: state.avatarFile.ipfsCid,
+      },
+    });
+
+    const mainAndStemsJson = JSON.stringify({
+      main: {
+        ipfsCid: state.main.ipfsCid,
+      },
+      stems: state.stems.map((stem) => ({ ipfsCid: stem.ipfsCid })),
+    });
+
+    const event = [
+      {
+        target: {
+          files: [coverAndAvatarJson],
+        },
+        persist: () => {},
+      },
+      {
+        target: {
+          files: [mainAndStemsJson],
+        },
+        persist: () => {},
+      },
+    ];
+
+    await Promise.all([
+      uploadFile(event[0], "coverAndAvatar"),
+      uploadFile(event[1], "mainAndStems"),
+    ]);
+
+    writeFunctionRef.current = writeFunction;
+  }
 
   return (
     <div className="flex h-full w-full max-w-[1228px] flex-col gap-12">
-      <FeedCover />
+      <CreateBlocCover />
       <div className="flex w-full gap-12">
         <div className="flex w-full flex-col gap-12">
           <div className="flex w-full flex-col gap-8">
@@ -140,23 +224,50 @@ export default function CreateBlocPage() {
           {chain?.id === sepoliaId ? (
             <Button
               className="!bg-[#4E81FF]"
-              loading={isLoadingCore}
-              disabled={!writeCore}
-              onClick={() => writeCore?.()}
+              loading={isLoading || isLoadingCore}
+              disabled={!writeCore || isLoading}
+              onClick={() => writeCore && handleOnClick(writeCore)}
             >
               Submit
             </Button>
           ) : (
             <Button
               className="!bg-[#4E81FF]"
-              loading={isLoadingRouter}
-              disabled={!writeRouter}
-              onClick={() => writeRouter?.()}
+              loading={isLoading || isLoadingRouter}
+              disabled={!writeRouter || isLoading}
+              onClick={() => writeRouter && handleOnClick(writeRouter)}
             >
               Submit
             </Button>
           )}
         </div>
+
+        <Toast
+          description={
+            "Success! Your music bloc has been submitted. Time to stream your feelings to the world!"
+          }
+          open={isToastOpen}
+          title="Transaction successful"
+          variant="desktop"
+          onClose={() => setIsToastOpen(false)}
+        >
+          <Button
+            className="!bg-[#4E81FF]"
+            size="small"
+            as="a"
+            href={
+              chain?.blockExplorers?.default
+                ? chain.blockExplorers.default.url +
+                  "/tx/" +
+                  (dataCore?.hash || dataRouter?.hash || "")
+                : ""
+            }
+            rel="noreferrer"
+            target="_blank"
+          >
+            View In Explorer
+          </Button>
+        </Toast>
 
         <Card className="h-max w-full !max-w-sm">
           <Typography fontVariant="extraLargeBold" className="!font-outfit">
