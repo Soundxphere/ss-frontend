@@ -1,6 +1,8 @@
 import { BrowserProvider } from "ethers";
 import { SiweMessage } from "siwe";
 
+const BACKEND_ADDR = "";
+
 const domain = typeof window !== "undefined" ? window.location.host : undefined;
 const origin =
   typeof window !== "undefined" ? window.location.origin : undefined;
@@ -17,7 +19,7 @@ export function connectWallet(
     name: string;
     address: string;
     avatarUrl: string;
-  }) => void
+  }) => void,
 ) {
   provider
     ?.send("eth_requestAccounts", [])
@@ -48,7 +50,7 @@ export async function signInWithEthereum() {
   }
   const message = await createSiweMessage(
     await signer.getAddress(),
-    "Sign in with Ethereum to the app."
+    "Sign in with Ethereum to the app.",
   );
   const signature = await signer.signMessage(message);
 
