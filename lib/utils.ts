@@ -12,3 +12,20 @@ export function ellipsisAddress(address: string, length = 4) {
     address.length,
   )}`;
 }
+
+export function satisfies(array: any[]) {
+  return array.every(Boolean);
+}
+
+export function sanitizeSubdomain(input: string): string {
+  const whitelist = /^[a-z0-9_]+$/;
+  let sanitized = input.toLowerCase().replace(/\s+/g, "_");
+
+  // Remove all characters not in the whitelist
+  sanitized = sanitized
+    .split("")
+    .filter((char) => whitelist.test(char))
+    .join("");
+
+  return sanitized;
+}
