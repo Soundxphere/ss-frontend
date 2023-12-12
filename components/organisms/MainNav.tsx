@@ -34,7 +34,7 @@ const MainNav = () => {
     <div className="flex w-full justify-between bg-white px-6 py-5">
       <div className="flex items-center gap-8">
         <Link className="rounded-full" href={"/"}>
-          <img src="/logo.svg" alt="soundsphere logo" />
+          <img width={50} height={50} src="/logo.svg" alt="soundsphere logo" />
         </Link>
         <div className="flex gap-4">
           {navItems.map(({ name, href, isActive }) => (
