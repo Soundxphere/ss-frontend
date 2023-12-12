@@ -2,7 +2,7 @@ import {
   RainbowKitProvider as _RainbowKitProvider,
   lightTheme,
 } from "@rainbow-me/rainbowkit";
-import { avalancheFuji, sepolia, polygonMumbai } from "wagmi/chains";
+import { avalancheFuji, polygonMumbai, sepolia } from "wagmi/chains";
 
 const RainbowKitProvider = ({ children }: { children: React.ReactNode }) => {
   // NOTE: The chains is passed in by WagmiProvider
@@ -16,7 +16,7 @@ const RainbowKitProvider = ({ children }: { children: React.ReactNode }) => {
         overlayBlur: "large",
       })}
       coolMode
-      chains={[avalancheFuji, polygonMumbai, sepolia]}
+      chains={[sepolia, polygonMumbai, avalancheFuji]}
     >
       {children}
     </_RainbowKitProvider>
