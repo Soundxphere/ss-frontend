@@ -108,17 +108,17 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "cid",
+        "name": "_cid",
         "type": "string"
       },
       {
-        "internalType": "uint256",
-        "name": "seedboxCap",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "_name",
+        "type": "string"
       },
       {
         "internalType": "string",
-        "name": "seed",
+        "name": "_seed",
         "type": "string"
       }
     ],

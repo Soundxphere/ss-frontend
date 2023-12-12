@@ -8,17 +8,38 @@ export const coreABI = [
       },
       {
         internalType: "uint256",
-        name: "_minBlocRequirement",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
         name: "updateInterval",
         type: "uint256",
       },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "Create2EmptyBytecode",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Create2FailedDeployment",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "balance",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "needed",
+        type: "uint256",
+      },
+    ],
+    name: "Create2InsufficientBalance",
+    type: "error",
   },
   {
     inputs: [
@@ -183,6 +204,32 @@ export const coreABI = [
     type: "event",
   },
   {
+    inputs: [],
+    name: "_domain",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "_topdomain",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         components: [
@@ -295,18 +342,31 @@ export const coreABI = [
       },
       {
         internalType: "string",
-        name: "seed",
+        name: "name",
         type: "string",
       },
       {
-        internalType: "uint256",
-        name: "blocAmount",
-        type: "uint256",
+        internalType: "string",
+        name: "seed",
+        type: "string",
       },
     ],
     name: "createMusicBloc",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "emptyNamehash",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -361,32 +421,6 @@ export const coreABI = [
   {
     inputs: [],
     name: "lastTimeStamp",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "maxReleasePeriod",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "minBlocRequirement",
     outputs: [
       {
         internalType: "uint256",
@@ -463,6 +497,19 @@ export const coreABI = [
     name: "postStatus",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "registry",
+    outputs: [
+      {
+        internalType: "contract ENSRegistry",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -633,17 +680,17 @@ export const routerABI = [
     inputs: [
       {
         internalType: "string",
-        name: "cid",
+        name: "_cid",
         type: "string",
       },
       {
-        internalType: "uint256",
-        name: "seedboxCap",
-        type: "uint256",
+        internalType: "string",
+        name: "_name",
+        type: "string",
       },
       {
         internalType: "string",
-        name: "seed",
+        name: "_seed",
         type: "string",
       },
     ],
@@ -756,7 +803,7 @@ export const routerABI = [
     stateMutability: "payable",
     type: "receive",
   },
-];
+] as const;
 
 export const blocABI = [
   {
