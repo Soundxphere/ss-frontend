@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ensdomains/thorin": "^0.6.44",
+    "@lighthouse-web3/sdk": "^0.2.3",
     "@orbisclub/components": "^0.2.11",
     "@orbisclub/orbis-sdk": "^0.4.89",
     "@phosphor-icons/react": "^2.0.15",
