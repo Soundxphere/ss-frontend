@@ -1,3 +1,4 @@
+import { CreateBlocState } from "@/app/blocs/create-bloc/page";
 import {
   Button,
   Card,
@@ -5,15 +6,52 @@ import {
   Field,
   FieldSet,
   FileInput,
+  Typography,
   VisuallyHidden,
 } from "@ensdomains/thorin";
-import { useState } from "react";
-
 import SeedPlayback from "../molecules/SeedPlayback";
+import useLightHouse from "@/lib/hooks/lighthouse";
+import { useEffect } from "react";
 
-const CreateBlocSeed = () => {
-  const [main, setMain] = useState("");
-  const [stems, setStems] = useState([""]);
+interface CreateBlocSeedProps {
+  main: {
+    localUrl: string;
+    uploadedUrl: string;
+  };
+  stems: {
+    localUrl: string;
+    uploadedUrl: string;
+  }[];
+  updateValues: (update: Partial<CreateBlocState>) => void;
+}
+
+const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
+  const { uploadFile, uploadStatuses } = useLightHouse();
+  console.log(uploadStatuses);
+  console.log(stems);
+  console.log(main);
+
+  useEffect(() => {
+    if (uploadStatuses["main"]) {
+      updateValues({
+        main: {
+          ...main,
+          uploadedUrl: uploadStatuses["main"].fileStatus?.data.Hash || "",
+        },
+      });
+    }
+    stems.forEach((_, i) => {
+      if (uploadStatuses[`stems[${i}]`]) {
+        const newStems = [...stems];
+        newStems[i] = {
+          ...newStems[i],
+          uploadedUrl:
+            uploadStatuses[`stems[${i}]`].fileStatus?.data.Hash || "",
+        };
+        updateValues({ stems: newStems });
+      }
+    });
+  }, [uploadStatuses]);
 
   return (
     <Card className="w-full">
@@ -31,9 +69,19 @@ const CreateBlocSeed = () => {
               accept="audio/*"
               onChange={async (file) => {
                 const url = URL.createObjectURL(file);
-                setMain(url);
+                updateValues({ main: { localUrl: url, uploadedUrl: "" } });
+                // Create a synthetic event object
+                const event = {
+                  target: {
+                    files: [file],
+                  },
+                  persist: () => {},
+                };
+                await uploadFile(event, "main");
               }}
-              //   onReset={() => setMain("")}
+              onReset={() =>
+                updateValues({ main: { localUrl: "", uploadedUrl: "" } })
+              }
             >
               {(context) =>
                 context.name ? (
@@ -42,20 +90,23 @@ const CreateBlocSeed = () => {
                       <SeedPlayback
                         id={context.name}
                         name={context.name}
-                        url={main}
+                        url={main.localUrl}
                       />
                     }
-                    <div style={{ width: "48px" }}>
-                      <Button
-                        shape="circle"
-                        size="small"
-                        // @ts-ignore
-                        onClick={context.reset}
-                      >
-                        <VisuallyHidden>Remove</VisuallyHidden>
-                        <CrossSVG />
-                      </Button>
-                    </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            shape="circle"
+                            size="small"
+                            // @ts-ignore
+                            onClick={context.reset}
+                          >
+                            <VisuallyHidden>Remove</VisuallyHidden>
+                            <CrossSVG />
+                          </Button>
+                          <Typography className="w-[4ch]" fontVariant="smallBold">
+                            {uploadStatuses["main"]?.percentage}
+                          </Typography>
+                        </div>
                   </div>
                 ) : (
                   <div>{context.droppable ? "Drop track" : "Attach track"}</div>
@@ -74,22 +125,27 @@ const CreateBlocSeed = () => {
                   accept="audio/*"
                   onChange={async (file) => {
                     const url = URL.createObjectURL(file);
-                    setStems((prev) => {
-                      const latest = [...prev];
-                      if (!latest[i]) {
-                        latest.push("");
-                      }
-                      latest[i] = url;
-                      return latest;
+                    const newStems = [...stems];
+                    newStems[i] = { localUrl: url, uploadedUrl: "" };
+                    updateValues({
+                      stems: [...newStems, { localUrl: url, uploadedUrl: "" }],
+                    });
+                    // Create a synthetic event object
+                    const event = {
+                      target: {
+                        files: [file],
+                      },
+                      persist: () => {},
+                    };
+                    await uploadFile(event, `stems[${i}]`);
+                  }}
+                  onReset={() => {
+                    const newStems = [...stems];
+                    newStems.splice(i, 1);
+                    updateValues({
+                      stems: newStems,
                     });
                   }}
-                  onReset={() =>
-                    setStems((prev) => {
-                      const latest = [...prev];
-                      latest.splice(i, 1);
-                      return latest;
-                    })
-                  }
                 >
                   {(context) =>
                     context.name ? (
@@ -99,10 +155,10 @@ const CreateBlocSeed = () => {
                             key={i}
                             id={i.toString()}
                             name={context.name}
-                            url={stems[i]}
+                            url={stems[i].localUrl}
                           />
                         }
-                        <div style={{ width: "48px" }}>
+                        <div className="flex items-center gap-2">
                           <Button
                             shape="circle"
                             size="small"
@@ -112,6 +168,9 @@ const CreateBlocSeed = () => {
                             <VisuallyHidden>Remove</VisuallyHidden>
                             <CrossSVG />
                           </Button>
+                          <Typography className="w-[4ch]" fontVariant="smallBold">
+                            {uploadStatuses[`stems[${i}]`]?.percentage}
+                          </Typography>
                         </div>
                       </div>
                     ) : (

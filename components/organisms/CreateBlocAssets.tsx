@@ -1,3 +1,5 @@
+import { CreateBlocState } from "@/app/blocs/create-bloc/page";
+import useLightHouse from "@/lib/hooks/lighthouse";
 import {
   Avatar,
   Button,
@@ -6,23 +8,69 @@ import {
   Field,
   FieldSet,
   FileInput,
+  Typography,
   VisuallyHidden,
 } from "@ensdomains/thorin";
 import Image from "next/image";
+import { useEffect } from "react";
 
 interface CreateBlocAssetsProps {
-  coverImageFile: string;
-  avatarFile: string;
-  setCoverImageFile: (value: string) => void;
-  setAvatarFile: (value: string) => void;
+  coverImageFile: {
+    localUrl: string;
+    uploadedUrl: string;
+  };
+  avatarFile: {
+    localUrl: string;
+    uploadedUrl: string;
+  };
+  updateValues: (update: Partial<CreateBlocState>) => void;
 }
 
 const CreateBlocAssets = ({
   coverImageFile,
   avatarFile,
-  setCoverImageFile,
-  setAvatarFile,
+  updateValues,
 }: CreateBlocAssetsProps) => {
+  const { uploadFile, uploadStatuses } = useLightHouse();
+
+  useEffect(() => {
+    if (uploadStatuses["coverImageFile"]) {
+      updateValues({
+        coverImageFile: {
+          ...coverImageFile,
+          uploadedUrl:
+            uploadStatuses["coverImageFile"].fileStatus?.data.Hash || "",
+        },
+      });
+    }
+    if (uploadStatuses["avatarFile"]) {
+      updateValues({
+        avatarFile: {
+          ...avatarFile,
+          uploadedUrl: uploadStatuses["avatarFile"].fileStatus?.data.Hash || "",
+        },
+      });
+    }
+  }, [uploadStatuses]);
+
+  const handleFileChange =
+    (type: keyof CreateBlocState) => async (file: File) => {
+      const url = URL.createObjectURL(file);
+      updateValues({ [type]: { localUrl: url, uploadedUrl: "" } });
+      // Create a synthetic event object
+      const event = {
+        target: {
+          files: [file],
+        },
+        persist: () => {},
+      };
+      await uploadFile(event, type);
+    };
+
+  const handleFileReset = (type: keyof CreateBlocState) => () => {
+    updateValues({ [type]: { localUrl: "", uploadedUrl: "" } });
+  };
+
   return (
     <Card className="w-full">
       <FieldSet
@@ -35,7 +83,7 @@ const CreateBlocAssets = ({
               <div className="relative z-[1] grid h-36 w-full min-w-[9rem] place-items-center overflow-hidden  rounded-[20px] bg-[#3b3a3a]">
                 <Image
                   src={
-                    coverImageFile ||
+                    coverImageFile.localUrl ||
                     "https://avatar.vercel.sh/kelvinpraisoes@gmail.com"
                   }
                   style={{ objectFit: "cover", zIndex: 0 }}
@@ -45,24 +93,21 @@ const CreateBlocAssets = ({
                 />
               </div>
               <div className="relative z-[1] mt-[-4rem] grid h-32 w-full max-w-[8rem] rounded-[50%] border-2 border-[#EFF1F8]">
-                <Avatar src={avatarFile} label="preview avatar" />
+                <Avatar src={avatarFile.localUrl} label="preview avatar" />
               </div>
             </div>
           </Field>
         </Card>
         <FileInput
           accept="image/jpeg,image/png"
-          onChange={async (file) => {
-            const url = URL.createObjectURL(file);
-            setCoverImageFile(url);
-          }}
-          onReset={() => setCoverImageFile("")}
+          onChange={handleFileChange("coverImageFile")}
+          onReset={handleFileReset("coverImageFile")}
         >
           {(context) =>
             context.name ? (
               <div className="flex items-center gap-2">
                 {context.name}
-                <div style={{ width: "48px" }}>
+                <div className="flex items-center gap-2">
                   <Button
                     shape="circle"
                     size="small"
@@ -72,6 +117,9 @@ const CreateBlocAssets = ({
                     <VisuallyHidden>Remove</VisuallyHidden>
                     <CrossSVG />
                   </Button>
+                  <Typography fontVariant="smallBold">
+                    {uploadStatuses["coverImageFile"]?.percentage}
+                  </Typography>
                 </div>
               </div>
             ) : (
@@ -81,17 +129,14 @@ const CreateBlocAssets = ({
         </FileInput>
         <FileInput
           accept="image/jpeg,image/png"
-          onChange={async (file) => {
-            const url = URL.createObjectURL(file);
-            setAvatarFile(url);
-          }}
-          onReset={() => setAvatarFile("")}
+          onChange={handleFileChange("avatarFile")}
+          onReset={handleFileReset("avatarFile")}
         >
           {(context) =>
             context.name ? (
               <div className="flex items-center gap-2">
                 {context.name}
-                <div style={{ width: "48px" }}>
+                <div className="flex items-center gap-2">
                   <Button
                     shape="circle"
                     size="small"
@@ -101,6 +146,9 @@ const CreateBlocAssets = ({
                     <VisuallyHidden>Remove</VisuallyHidden>
                     <CrossSVG />
                   </Button>
+                  <Typography fontVariant="smallBold">
+                    {uploadStatuses["avatarFile"]?.percentage}
+                  </Typography>
                 </div>
               </div>
             ) : (
