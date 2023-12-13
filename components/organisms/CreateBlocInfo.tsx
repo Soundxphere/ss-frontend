@@ -51,8 +51,8 @@ const CreateBlocInfo = ({ updateValues, values }: CreateBlocInfoProps) => {
             { value: "bsc", label: "Binance Smart Chain" },
             { value: "solana", label: "Solana" },
           ]}
-          value={values.chain}
-          onChange={(e) => updateValues({ chain: e.target.value })}
+          value={values.mintChain}
+          onChange={(e) => updateValues({ mintChain: e.target.value })}
         />
       </FieldSet>
     </Card>

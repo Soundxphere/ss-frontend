@@ -2,6 +2,7 @@
 import { Button, Card, Toast, Typography } from "@ensdomains/thorin";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { useContractWrite, useNetwork, usePrepareContractWrite } from "wagmi";
+import { sepolia } from "wagmi/chains";
 
 import CreateBlocCover from "@/components/atoms/CreateBlocCover";
 import CreateBlocAssets from "@/components/organisms/CreateBlocAssets";
@@ -21,7 +22,7 @@ export interface CreateBlocState {
   name: string;
   description: string;
   genre: string;
-  chain: string;
+  mintChain: string;
   coverImageFile: {
     localUrl: string;
     ipfsCid: string;
@@ -44,7 +45,7 @@ const initialState: CreateBlocState = {
   name: "",
   description: "",
   genre: "",
-  chain: "",
+  mintChain: "",
   coverImageFile: {
     localUrl: "",
     ipfsCid: "",
@@ -91,8 +92,6 @@ const useBlocContractWrite = (
 };
 
 export default function CreateBlocPage() {
-  const sepoliaId = 11155111;
-
   const { chain } = useNetwork();
   const { uploadFile, uploadStatuses } = useLightHouse();
   const writeFunctionRef = useRef<Function | null>(null);
@@ -147,11 +146,11 @@ export default function CreateBlocPage() {
     if (allUploadsCompleted) {
       setIsLoading(false);
 
-      const coverAndAvatarStatus = uploadStatuses["coverAndAvatar"];
+      const blocInfoStatus = uploadStatuses["blocInfo"];
       const mainAndStemsStatus = uploadStatuses["mainAndStems"];
 
       setContractArgs({
-        blockInfoCid: coverAndAvatarStatus?.fileStatus?.data?.Hash || "",
+        blockInfoCid: blocInfoStatus?.fileStatus?.data?.Hash || "",
         subdomain: sanitizeSubdomain(state.name),
         seedInfoCid: mainAndStemsStatus?.fileStatus?.data?.Hash || "",
       });
@@ -163,7 +162,11 @@ export default function CreateBlocPage() {
   }, [uploadStatuses]);
 
   async function handleOnClick(writeFunction: Function) {
-    const coverAndAvatarJson = JSON.stringify({
+    const blocInfoJson = JSON.stringify({
+      name: state.name,
+      description: state.description,
+      genre: state.genre,
+      mintChain: state.mintChain,
       coverImage: {
         ipfsCid: state.coverImageFile.ipfsCid,
       },
@@ -182,7 +185,7 @@ export default function CreateBlocPage() {
     const event = [
       {
         target: {
-          files: [coverAndAvatarJson],
+          files: [blocInfoJson],
         },
         persist: () => {},
       },
@@ -195,7 +198,7 @@ export default function CreateBlocPage() {
     ];
 
     await Promise.all([
-      uploadFile(event[0], "coverAndAvatar"),
+      uploadFile(event[0], "blocInfo"),
       uploadFile(event[1], "mainAndStems"),
     ]);
 
@@ -221,7 +224,7 @@ export default function CreateBlocPage() {
             />
           </div>
 
-          {chain?.id === sepoliaId ? (
+          {chain?.id === sepolia.id ? (
             <Button
               className="!bg-[#4E81FF]"
               loading={isLoading || isLoadingCore}
