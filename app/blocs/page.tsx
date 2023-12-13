@@ -47,8 +47,8 @@ export default function BlocExplorerPage() {
           chainId: sepolia.id,
         };
       }),
-    // watch: true,
-    // enabled: !!data,
+    watch: true,
+    enabled: !!data,
     onSuccess: (datas) => {
       console.log(data);
       console.log(datas);
@@ -60,7 +60,7 @@ export default function BlocExplorerPage() {
       <BlocsCover />
 
       <div>
-        <h1>SpaceX Launches</h1>
+        <h1>Blocs Addresses</h1>
         {isLoading && <p>Loading...</p>}
         {error && <pre>{error.message}</pre>}
         {data && (
