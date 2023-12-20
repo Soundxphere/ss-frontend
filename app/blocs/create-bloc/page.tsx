@@ -1,7 +1,12 @@
 "use client";
 import { Button, Card, Toast, Typography } from "@ensdomains/thorin";
 import { useEffect, useReducer, useRef, useState } from "react";
-import { useContractWrite, useNetwork, usePrepareContractWrite } from "wagmi";
+import {
+  Address,
+  useContractWrite,
+  useNetwork,
+  usePrepareContractWrite,
+} from "wagmi";
 import { sepolia } from "wagmi/chains";
 
 import CreateBlocCover from "@/components/atoms/CreateBlocCover";
@@ -10,7 +15,7 @@ import CreateBlocInfo from "@/components/organisms/CreateBlocInfo";
 import CreateBlocSeed from "@/components/organisms/CreateBlocSeed";
 import { coreABI, routerABI } from "@/lib/contracts/data";
 import useLightHouse from "@/lib/hooks/lighthouse";
-import { sanitizeSubdomain } from "@/lib/utils";
+import { isEmpty, sanitizeSubdomain, satisfies } from "@/lib/utils";
 
 interface ContractArgs {
   blockInfoCid: string;
@@ -75,15 +80,19 @@ const reducer = (
 
 const useBlocContractWrite = (
   abi: any,
-  address: any,
+  address: Address,
   functionName: string,
   args: ContractArgs,
 ) => {
+  console.log(args);
+  console.log(satisfies([args.blockInfoCid, args.subdomain, args.seedInfoCid]));
+
   const { config, error } = usePrepareContractWrite({
-    address: address || "",
+    address,
     abi,
     functionName,
     args: [args.blockInfoCid, args.subdomain, args.seedInfoCid],
+    enabled: satisfies([args.blockInfoCid, args.subdomain, args.seedInfoCid]),
   });
 
   error && console.error(error);
@@ -111,7 +120,7 @@ export default function CreateBlocPage() {
     write: writeCore,
   } = useBlocContractWrite(
     coreABI,
-    process.env.NEXT_PUBLIC_CORE_CONTRACT,
+    process.env.NEXT_PUBLIC_CORE_CONTRACT as Address,
     "createMusicBloc",
     contractArgs,
   );
@@ -123,12 +132,10 @@ export default function CreateBlocPage() {
     write: writeRouter,
   } = useBlocContractWrite(
     routerABI,
-    process.env.NEXT_PUBLIC_POLYGON_ROUTER_CONTRACT,
+    process.env.NEXT_PUBLIC_POLYGON_ROUTER_CONTRACT as Address,
     "sendCreateMusicBloc",
     contractArgs,
   );
-
-  chain?.id;
 
   useEffect(() => {
     if (isSuccessCore || isSuccessRouter) {
@@ -137,6 +144,8 @@ export default function CreateBlocPage() {
   }, [isSuccessCore, isSuccessRouter]);
 
   useEffect(() => {
+    if (isEmpty(uploadStatuses)) return;
+
     const allUploadsCompleted = Object.values(uploadStatuses).every(
       (status) => status.percentage === 100,
     );
@@ -147,12 +156,12 @@ export default function CreateBlocPage() {
       setIsLoading(false);
 
       const blocInfoStatus = uploadStatuses["blocInfo"];
-      const mainAndStemsStatus = uploadStatuses["mainAndStems"];
+      const musicSeedStatus = uploadStatuses["musicSeed"];
 
       setContractArgs({
         blockInfoCid: blocInfoStatus?.fileStatus?.data?.Hash || "",
         subdomain: sanitizeSubdomain(state.name),
-        seedInfoCid: mainAndStemsStatus?.fileStatus?.data?.Hash || "",
+        seedInfoCid: musicSeedStatus?.fileStatus?.data?.Hash || "",
       });
 
       if (writeFunctionRef.current) {
@@ -162,6 +171,8 @@ export default function CreateBlocPage() {
   }, [uploadStatuses]);
 
   async function handleOnClick(writeFunction: Function) {
+    writeFunctionRef.current = writeFunction;
+
     const blocInfoJson = JSON.stringify({
       name: state.name,
       description: state.description,
@@ -175,7 +186,7 @@ export default function CreateBlocPage() {
       },
     });
 
-    const mainAndStemsJson = JSON.stringify({
+    const musicSeedJson = JSON.stringify({
       main: {
         ipfsCid: state.main.ipfsCid,
       },
@@ -191,7 +202,7 @@ export default function CreateBlocPage() {
       },
       {
         target: {
-          files: [mainAndStemsJson],
+          files: [musicSeedJson],
         },
         persist: () => {},
       },
@@ -199,10 +210,8 @@ export default function CreateBlocPage() {
 
     await Promise.all([
       uploadFile(event[0], "blocInfo"),
-      uploadFile(event[1], "mainAndStems"),
+      uploadFile(event[1], "musicSeed"),
     ]);
-
-    writeFunctionRef.current = writeFunction;
   }
 
   return (
