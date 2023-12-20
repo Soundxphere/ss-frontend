@@ -27,9 +27,6 @@ interface CreateBlocSeedProps {
 
 const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
   const { uploadFile, uploadStatuses } = useLightHouse();
-  console.log(uploadStatuses);
-  console.log(stems);
-  console.log(main);
 
   useEffect(() => {
     if (uploadStatuses["main"]) {
@@ -45,8 +42,7 @@ const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
         const newStems = [...stems];
         newStems[i] = {
           ...newStems[i],
-          ipfsCid:
-            uploadStatuses[`stems[${i}]`].fileStatus?.data.Hash || "",
+          ipfsCid: uploadStatuses[`stems[${i}]`].fileStatus?.data.Hash || "",
         };
         updateValues({ stems: newStems });
       }
@@ -93,20 +89,20 @@ const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
                         url={main.localUrl}
                       />
                     }
-                        <div className="flex items-center gap-2">
-                          <Button
-                            shape="circle"
-                            size="small"
-                            // @ts-ignore
-                            onClick={context.reset}
-                          >
-                            <VisuallyHidden>Remove</VisuallyHidden>
-                            <CrossSVG />
-                          </Button>
-                          <Typography className="w-[4ch]" fontVariant="smallBold">
-                            {uploadStatuses["main"]?.percentage}
-                          </Typography>
-                        </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        shape="circle"
+                        size="small"
+                        // @ts-ignore
+                        onClick={context.reset}
+                      >
+                        <VisuallyHidden>Remove</VisuallyHidden>
+                        <CrossSVG />
+                      </Button>
+                      <Typography className="w-[4ch]" fontVariant="smallBold">
+                        {uploadStatuses["main"]?.percentage}
+                      </Typography>
+                    </div>
                   </div>
                 ) : (
                   <div>{context.droppable ? "Drop track" : "Attach track"}</div>
@@ -168,7 +164,10 @@ const CreateBlocSeed = ({ main, stems, updateValues }: CreateBlocSeedProps) => {
                             <VisuallyHidden>Remove</VisuallyHidden>
                             <CrossSVG />
                           </Button>
-                          <Typography className="w-[4ch]" fontVariant="smallBold">
+                          <Typography
+                            className="w-[4ch]"
+                            fontVariant="smallBold"
+                          >
                             {uploadStatuses[`stems[${i}]`]?.percentage}
                           </Typography>
                         </div>
