@@ -29,3 +29,7 @@ export function sanitizeSubdomain(input: string): string {
 
   return sanitized;
 }
+
+export const isEmpty = (obj: Object) => {
+  return Object.keys(obj).length === 0;
+};
