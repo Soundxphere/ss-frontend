@@ -19,16 +19,15 @@ const useLightHouse = () => {
     Record<string, UploadStatus>
   >({});
 
-  console.log(uploadStatuses);
-
   const uploadFile = async (e: any, key: string) => {
     const progressCallback = (progressData: {
       total: number;
       uploaded: number;
     }) => {
-      let percentageDone =
-        100 -
-        parseFloat((progressData?.total / progressData?.uploaded)?.toFixed(2));
+      let percentageDone = parseFloat(
+        ((progressData?.uploaded / progressData?.total) * 99).toFixed(2),
+      );
+
       setUploadStatuses((prevStatuses) => ({
         ...prevStatuses,
         [key]: {
@@ -47,6 +46,7 @@ const useLightHouse = () => {
     setUploadStatuses((prevStatuses) => ({
       ...prevStatuses,
       [key]: {
+        // We only make it a 100% when we've got a fileStatus cid
         percentage: 100,
         fileStatus: output,
       },
